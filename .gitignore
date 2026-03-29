@@ -39,3 +39,9 @@ logs/
 .pytest_cache/
 .coverage
 htmlcov/
+
+# Project-specific — large data & generated files
+DeepResearchAIAgent/data/documents/*
+!DeepResearchAIAgent/data/documents/.gitkeep
+DeepResearchAIAgent/outputs/
+DeepResearchAIAgent/chroma_db/
