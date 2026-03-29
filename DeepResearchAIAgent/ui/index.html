@@ -13,73 +13,96 @@
 </head>
 <body>
 
-<!-- ══ HEADER ══════════════════════════════════════════════════════════════════ -->
+<!-- ══ HEADER ════════════════════════════════════════════════════════════════ -->
 <header class="header">
   <div class="header-inner">
     <div class="brand">
       <img src="/static/logo/ideogram-v3.0_i_am_trying_to_create_Deep_research_agent_like_claude_called_finDRA.AI_create_lo-0.jpg"
-           alt="FinResearch AI Logo" class="brand-logo"/>
+           alt="finDRA.AI" class="brand-logo"/>
       <div class="brand-text">
         <span class="brand-name">fin<span class="brand-accent">DRA.AI</span></span>
         <span class="brand-tagline">Deep Research Agent</span>
       </div>
     </div>
+    <div class="header-center" id="header-center" style="display:none">
+      <div class="header-query" id="header-query"></div>
+    </div>
     <div class="header-right">
       <div class="sector-pill" id="sector-pill" style="display:none"></div>
-      <div class="status-indicator" id="status-indicator">
+      <div class="status-indicator">
         <span class="status-dot idle" id="status-dot"></span>
         <span class="status-text" id="status-text">Ready</span>
       </div>
+      <button class="btn btn-ghost btn-sm" id="new-query-btn" onclick="newQuery()" style="display:none">
+        + New
+      </button>
     </div>
   </div>
 </header>
 
-<!-- ══ LAYOUT ═══════════════════════════════════════════════════════════════════ -->
-<div class="app-layout">
+<!-- ══ HOME VIEW ═════════════════════════════════════════════════════════════ -->
+<div id="home-view" class="home-view">
+  <div class="hero">
+    <img src="/static/logo/ideogram-v3.0_i_am_trying_to_create_Deep_research_agent_like_claude_called_finDRA.AI_create_lo-0.jpg"
+         alt="finDRA.AI" class="hero-logo"/>
+    <h1 class="hero-title">fin<span class="brand-accent">DRA.AI</span></h1>
+    <p class="hero-sub">Deep Financial Research Agent &mdash; IT &amp; Pharma</p>
+    <p class="hero-desc">Multi-step AI that researches like an analyst — searches, reads filings, crunches numbers, then writes a full report.</p>
 
-  <!-- ── SIDEBAR ─────────────────────────────────────────────────────────────── -->
-  <aside class="sidebar">
-
-    <!-- Query Panel -->
-    <div class="card query-card">
-      <div class="card-header">
-        <span class="card-icon">&#9672;</span>
-        <h3 class="card-title">Research Query</h3>
+    <div class="search-box">
+      <textarea id="query-input" class="search-input"
+        placeholder="Ask anything about IT or Pharma financials&#10;e.g. Compare TCS vs Infosys revenue growth 2024&#10;&#10;Press Ctrl+Enter to research"></textarea>
+      <div class="search-footer">
+        <div class="search-opts">
+          <select id="sector-select" class="select select-sm">
+            <option value="auto">&#9672; Auto-detect sector</option>
+            <option value="IT">&#9674; IT Services</option>
+            <option value="Pharma">&#9670; Pharma</option>
+          </select>
+          <select id="depth-select" class="select select-sm">
+            <option value="standard">Standard — 10 steps</option>
+            <option value="deep">Deep — 20 steps</option>
+          </select>
+        </div>
+        <button class="btn btn-primary btn-search" id="plan-btn" onclick="generatePlan()">
+          <span class="search-arrow">&#10148;</span> Research
+        </button>
       </div>
-
-      <textarea id="query-input" class="textarea"
-        placeholder="e.g. Analyze the financial health of major Indian IT services companies..."></textarea>
-
-      <div class="form-row">
-        <label class="form-label">Sector</label>
-        <select id="sector-select" class="select">
-          <option value="auto">Auto-detect</option>
-          <option value="IT">IT Services</option>
-          <option value="Pharma">Pharma</option>
-        </select>
-      </div>
-
-      <div class="form-row">
-        <label class="form-label">Research Depth</label>
-        <select id="depth-select" class="select">
-          <option value="standard">Standard &mdash; 10 steps</option>
-          <option value="deep">Deep &mdash; 20 steps</option>
-        </select>
-      </div>
-
-      <button class="btn btn-primary" id="plan-btn" onclick="generatePlan()">
-        <span class="btn-icon">&#9672;</span> Generate Research Plan
-      </button>
     </div>
 
-    <!-- Live Steps Feed -->
-    <div class="card steps-card" id="steps-card" style="display:none">
-      <div class="card-header">
-        <span class="card-icon">&#9654;</span>
-        <h3 class="card-title">Research Steps</h3>
-        <span class="step-badge" id="step-badge">0</span>
+    <div class="chips-wrap">
+      <p class="chips-label">&#9670; Try an example</p>
+      <div class="chips-list">
+        <button class="chip" onclick="setExample(this)">Indian IT sector outlook 2025</button>
+        <button class="chip" onclick="setExample(this)">Compare TCS vs Infosys vs Wipro financials</button>
+        <button class="chip" onclick="setExample(this)">Sun Pharma financial deep dive</button>
+        <button class="chip" onclick="setExample(this)">Emerging pharma R&amp;D trends</button>
+        <button class="chip" onclick="setExample(this)">Impact of AI on Indian IT companies</button>
+        <button class="chip" onclick="setExample(this)">Biosimilar pipeline Indian pharma</button>
       </div>
-      <ul class="steps-list" id="steps-list"></ul>
+    </div>
+  </div>
+</div>
+
+<!-- ══ WORK VIEW ═════════════════════════════════════════════════════════════ -->
+<div id="work-view" class="work-view" style="display:none">
+
+  <!-- ── SIDEBAR ─────────────────────────────────────────────────────────── -->
+  <aside class="sidebar">
+
+    <!-- Sidebar query summary -->
+    <div class="sidebar-query" id="sidebar-query">
+      <div class="sq-label">Researching</div>
+      <p class="sq-text" id="sq-text"></p>
+    </div>
+
+    <!-- Badges: sector + depth -->
+    <div class="sidebar-badges" id="sidebar-badges"></div>
+
+    <!-- Step counter -->
+    <div class="sidebar-stat" id="sidebar-stat" style="display:none">
+      <span class="stat-label">Steps completed</span>
+      <span class="step-badge" id="step-badge">0</span>
     </div>
 
     <!-- Sources -->
@@ -91,112 +114,106 @@
       <ul class="sources-list" id="sources-list"></ul>
     </div>
 
+    <!-- New research -->
+    <button class="btn btn-ghost btn-block" onclick="newQuery()" style="margin-top:auto">
+      &#8592; New Research
+    </button>
   </aside>
 
-  <!-- ── MAIN CONTENT ─────────────────────────────────────────────────────────── -->
+  <!-- ── MAIN CONTENT ─────────────────────────────────────────────────────── -->
   <main class="main-content">
 
-    <!-- Empty State -->
-    <div class="empty-state" id="empty-state">
-      <img src="/static/logo/ideogram-v3.0_i_am_trying_to_create_Deep_research_agent_like_claude_called_finDRA.AI_create_lo-0.jpg"
-           alt="FinResearch AI" class="empty-logo"/>
-      <h1 class="empty-title">fin<span class="brand-accent">DRA.AI</span></h1>
-      <p class="empty-subtitle">Deep Financial Research Agent for IT &amp; Pharma</p>
-      <p class="empty-desc">Multi-step AI research agent that digs deeper with every finding — like Deep Research mode, specialised for financial analysis.</p>
-
-      <div class="example-grid">
-        <p class="examples-label">Try an example query</p>
-        <div class="examples-list">
-          <button class="example-chip" onclick="setExample(this)">Analyze Indian IT sector outlook 2025</button>
-          <button class="example-chip" onclick="setExample(this)">Compare TCS vs Infosys vs Wipro financials</button>
-          <button class="example-chip" onclick="setExample(this)">Emerging trends in pharma R&amp;D spending</button>
-          <button class="example-chip" onclick="setExample(this)">Sun Pharma financial deep dive</button>
-          <button class="example-chip" onclick="setExample(this)">Impact of AI on Indian IT companies</button>
-          <button class="example-chip" onclick="setExample(this)">Biosimilar pipeline analysis Indian pharma</button>
-        </div>
-      </div>
+    <!-- Scope input (shown on modify) -->
+    <div class="scope-bar" id="scope-row" style="display:none">
+      <label class="form-label">Modify Research Scope</label>
+      <input type="text" id="scope-input" class="input"
+        placeholder="e.g. Focus only on cloud revenue and AI deal wins"/>
     </div>
 
-    <!-- Research Plan Panel -->
-    <div class="card plan-card" id="plan-panel" style="display:none">
-      <div class="card-header plan-header">
+    <!-- Plan Panel -->
+    <div class="plan-card" id="plan-panel" style="display:none">
+      <div class="plan-header">
         <div class="plan-header-left">
-          <span class="card-icon">&#128196;</span>
-          <h3 class="card-title">Research Plan</h3>
+          <span class="plan-icon">&#128196;</span>
+          <h2 class="plan-title">Research Plan</h2>
         </div>
         <div class="plan-tags" id="plan-tags"></div>
       </div>
 
-      <div class="plan-query" id="plan-query"></div>
+      <blockquote class="plan-query" id="plan-query"></blockquote>
 
       <div class="plan-grid" id="plan-body"></div>
 
-      <div class="scope-row" id="scope-row" style="display:none">
-        <label class="form-label">Modified Scope</label>
-        <input type="text" id="scope-input" class="input"
-          placeholder="e.g. Focus only on cloud revenue and AI deal wins"/>
-      </div>
-
       <div class="plan-actions">
-        <button class="btn btn-success" id="approve-btn" onclick="approvePlan()">
-          <span>&#10003;</span> Approve &amp; Start Research
+        <button class="btn btn-approve" id="approve-btn" onclick="approvePlan()">
+          &#10003;&ensp;Approve &amp; Start Research
         </button>
         <button class="btn btn-ghost" id="modify-btn" onclick="toggleModify()">
-          <span>&#9998;</span> Modify Scope
+          &#9998;&ensp;Modify Scope
         </button>
         <button class="btn btn-danger" id="cancel-btn" onclick="cancelPlan()">
-          <span>&#10005;</span> Cancel
+          &#10005;&ensp;Cancel
         </button>
       </div>
     </div>
 
-    <!-- Progress Bar -->
+    <!-- Progress + Thinking -->
     <div class="progress-wrap" id="progress-wrap" style="display:none">
-      <div class="progress-meta">
-        <span class="progress-label" id="progress-label">Initialising research...</span>
-        <span class="progress-steps" id="progress-steps">0 / 10 steps</span>
+      <div class="progress-top">
+        <div class="thinking-row">
+          <span class="thinking-dot"></span>
+          <span class="thinking-text" id="thinking-text">Initialising research...</span>
+        </div>
+        <span class="progress-steps" id="progress-steps">0 / 10</span>
       </div>
       <div class="progress-track">
         <div class="progress-fill" id="progress-fill"></div>
       </div>
+      <p class="progress-label" id="progress-label">&nbsp;</p>
+    </div>
+
+    <!-- Live Research Feed (steps as cards) -->
+    <div class="research-feed" id="research-feed" style="display:none">
+      <div class="feed-header">
+        <span class="feed-title">&#9654;&ensp;Live Research Activity</span>
+      </div>
+      <ul class="feed-list" id="steps-list"></ul>
     </div>
 
     <!-- Financial Snapshot -->
     <div id="financials-section" style="display:none">
       <div class="section-header">
-        <h2 class="section-title">Financial Snapshot</h2>
+        <h2 class="section-title">&#128200;&ensp;Financial Snapshot</h2>
         <span class="section-sub" id="fin-sub"></span>
       </div>
       <div class="metrics-grid" id="metrics-grid"></div>
       <div class="charts-row">
         <div class="card chart-card">
           <div class="card-header">
-            <span class="card-icon">&#128200;</span>
-            <h3 class="card-title">Revenue (Billion)</h3>
+            <span class="card-title">Revenue (USD Billion)</span>
           </div>
           <canvas id="revenue-chart"></canvas>
         </div>
         <div class="card chart-card">
           <div class="card-header">
-            <span class="card-icon">&#128201;</span>
-            <h3 class="card-title">Profitability Margins %</h3>
+            <span class="card-title">Profitability Margins %</span>
           </div>
           <canvas id="margins-chart"></canvas>
         </div>
       </div>
     </div>
 
-    <!-- Report Section -->
-    <div class="card report-card" id="report-section" style="display:none">
-      <div class="card-header report-header">
+    <!-- Report -->
+    <div class="report-card" id="report-section" style="display:none">
+      <div class="report-header">
         <div class="report-header-left">
-          <span class="card-icon">&#128203;</span>
-          <h3 class="card-title" id="report-title">Research Report</h3>
+          <span class="report-icon">&#128203;</span>
+          <h2 class="report-title-text" id="report-title">Research Report</h2>
         </div>
         <div class="report-actions">
-          <button class="btn btn-ghost btn-sm" onclick="copyReport()">&#10697; Copy</button>
-          <button class="btn btn-ghost btn-sm" onclick="downloadReport()">&#8595; .md</button>
-          <button class="btn btn-outline btn-sm" onclick="newQuery()">+ New Query</button>
+          <button class="btn btn-ghost btn-sm" onclick="copyReport()">&#10697;&ensp;Copy</button>
+          <button class="btn btn-ghost btn-sm" onclick="downloadReport()">&#8595;&ensp;Download .md</button>
+          <button class="btn btn-outline btn-sm" onclick="newQuery()">+ New Research</button>
         </div>
       </div>
       <div class="markdown-body" id="report-body"></div>
@@ -205,7 +222,7 @@
   </main>
 </div>
 
-<!-- Toast Container -->
+<!-- Toast -->
 <div id="toast-container"></div>
 
 <script src="/static/js/app.js"></script>
