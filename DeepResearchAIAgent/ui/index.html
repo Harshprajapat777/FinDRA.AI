@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>FinResearch AI</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="/static/css/style.css"/>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/marked@9.1.6/marked.min.js"></script>
+</head>
+<body>
+
+<!-- ══ HEADER ══════════════════════════════════════════════════════════════════ -->
+<header class="header">
+  <div class="header-inner">
+    <div class="brand">
+      <img src="/static/logo/ideogram-v3.0_i_am_trying_to_create_Deep_research_agent_like_claude_called_finDRA.AI_create_lo-0.jpg"
+           alt="FinResearch AI Logo" class="brand-logo"/>
+      <div class="brand-text">
+        <span class="brand-name">FinResearch<span class="brand-accent">AI</span></span>
+        <span class="brand-tagline">Deep Financial Intelligence</span>
+      </div>
+    </div>
+    <div class="header-right">
+      <div class="sector-pill" id="sector-pill" style="display:none"></div>
+      <div class="status-indicator" id="status-indicator">
+        <span class="status-dot idle" id="status-dot"></span>
+        <span class="status-text" id="status-text">Ready</span>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- ══ LAYOUT ═══════════════════════════════════════════════════════════════════ -->
+<div class="app-layout">
+
+  <!-- ── SIDEBAR ─────────────────────────────────────────────────────────────── -->
+  <aside class="sidebar">
+
+    <!-- Query Panel -->
+    <div class="card query-card">
+      <div class="card-header">
+        <span class="card-icon">&#9672;</span>
+        <h3 class="card-title">Research Query</h3>
+      </div>
+
+      <textarea id="query-input" class="textarea"
+        placeholder="e.g. Analyze the financial health of major Indian IT services companies..."></textarea>
+
+      <div class="form-row">
+        <label class="form-label">Sector</label>
+        <select id="sector-select" class="select">
+          <option value="auto">Auto-detect</option>
+          <option value="IT">IT Services</option>
+          <option value="Pharma">Pharma</option>
+        </select>
+      </div>
+
+      <div class="form-row">
+        <label class="form-label">Research Depth</label>
+        <select id="depth-select" class="select">
+          <option value="standard">Standard &mdash; 10 steps</option>
+          <option value="deep">Deep &mdash; 20 steps</option>
+        </select>
+      </div>
+
+      <button class="btn btn-primary" id="plan-btn" onclick="generatePlan()">
+        <span class="btn-icon">&#9672;</span> Generate Research Plan
+      </button>
+    </div>
+
+    <!-- Live Steps Feed -->
+    <div class="card steps-card" id="steps-card" style="display:none">
+      <div class="card-header">
+        <span class="card-icon">&#9654;</span>
+        <h3 class="card-title">Research Steps</h3>
+        <span class="step-badge" id="step-badge">0</span>
+      </div>
+      <ul class="steps-list" id="steps-list"></ul>
+    </div>
+
+    <!-- Sources -->
+    <div class="card sources-card" id="sources-card" style="display:none">
+      <div class="card-header">
+        <span class="card-icon">&#128279;</span>
+        <h3 class="card-title">Sources</h3>
+      </div>
+      <ul class="sources-list" id="sources-list"></ul>
+    </div>
+
+  </aside>
+
+  <!-- ── MAIN CONTENT ─────────────────────────────────────────────────────────── -->
+  <main class="main-content">
+
+    <!-- Empty State -->
+    <div class="empty-state" id="empty-state">
+      <img src="/static/logo/ideogram-v3.0_i_am_trying_to_create_Deep_research_agent_like_claude_called_finDRA.AI_create_lo-0.jpg"
+           alt="FinResearch AI" class="empty-logo"/>
+      <h1 class="empty-title">FinResearch<span class="brand-accent">AI</span></h1>
+      <p class="empty-subtitle">Deep Financial Intelligence for IT &amp; Pharma Sectors</p>
+      <p class="empty-desc">Multi-step AI research agent that digs deeper with every finding — like Deep Research mode, specialised for financial analysis.</p>
+
+      <div class="example-grid">
+        <p class="examples-label">Try an example query</p>
+        <div class="examples-list">
+          <button class="example-chip" onclick="setExample(this)">Analyze Indian IT sector outlook 2025</button>
+          <button class="example-chip" onclick="setExample(this)">Compare TCS vs Infosys vs Wipro financials</button>
+          <button class="example-chip" onclick="setExample(this)">Emerging trends in pharma R&amp;D spending</button>
+          <button class="example-chip" onclick="setExample(this)">Sun Pharma financial deep dive</button>
+          <button class="example-chip" onclick="setExample(this)">Impact of AI on Indian IT companies</button>
+          <button class="example-chip" onclick="setExample(this)">Biosimilar pipeline analysis Indian pharma</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Research Plan Panel -->
+    <div class="card plan-card" id="plan-panel" style="display:none">
+      <div class="card-header plan-header">
+        <div class="plan-header-left">
+          <span class="card-icon">&#128196;</span>
+          <h3 class="card-title">Research Plan</h3>
+        </div>
+        <div class="plan-tags" id="plan-tags"></div>
+      </div>
+
+      <div class="plan-query" id="plan-query"></div>
+
+      <div class="plan-grid" id="plan-body"></div>
+
+      <div class="scope-row" id="scope-row" style="display:none">
+        <label class="form-label">Modified Scope</label>
+        <input type="text" id="scope-input" class="input"
+          placeholder="e.g. Focus only on cloud revenue and AI deal wins"/>
+      </div>
+
+      <div class="plan-actions">
+        <button class="btn btn-success" id="approve-btn" onclick="approvePlan()">
+          <span>&#10003;</span> Approve &amp; Start Research
+        </button>
+        <button class="btn btn-ghost" id="modify-btn" onclick="toggleModify()">
+          <span>&#9998;</span> Modify Scope
+        </button>
+        <button class="btn btn-danger" id="cancel-btn" onclick="cancelPlan()">
+          <span>&#10005;</span> Cancel
+        </button>
+      </div>
+    </div>
+
+    <!-- Progress Bar -->
+    <div class="progress-wrap" id="progress-wrap" style="display:none">
+      <div class="progress-track">
+        <div class="progress-fill" id="progress-fill"></div>
+      </div>
+      <div class="progress-meta">
+        <span class="progress-label" id="progress-label">Initialising research...</span>
+        <span class="progress-steps" id="progress-steps">0 / 10 steps</span>
+      </div>
+    </div>
+
+    <!-- Financial Snapshot -->
+    <div id="financials-section" style="display:none">
+      <div class="section-header">
+        <h2 class="section-title">Financial Snapshot</h2>
+        <span class="section-sub" id="fin-sub"></span>
+      </div>
+      <div class="metrics-grid" id="metrics-grid"></div>
+      <div class="charts-row">
+        <div class="card chart-card">
+          <div class="card-header">
+            <span class="card-icon">&#128200;</span>
+            <h3 class="card-title">Revenue (Billion)</h3>
+          </div>
+          <canvas id="revenue-chart"></canvas>
+        </div>
+        <div class="card chart-card">
+          <div class="card-header">
+            <span class="card-icon">&#128201;</span>
+            <h3 class="card-title">Profitability Margins %</h3>
+          </div>
+          <canvas id="margins-chart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Report Section -->
+    <div class="card report-card" id="report-section" style="display:none">
+      <div class="card-header report-header">
+        <div class="report-header-left">
+          <span class="card-icon">&#128203;</span>
+          <h3 class="card-title" id="report-title">Research Report</h3>
+        </div>
+        <div class="report-actions">
+          <button class="btn btn-ghost btn-sm" onclick="copyReport()">&#10697; Copy</button>
+          <button class="btn btn-ghost btn-sm" onclick="downloadReport()">&#8595; .md</button>
+          <button class="btn btn-outline btn-sm" onclick="newQuery()">+ New Query</button>
+        </div>
+      </div>
+      <div class="markdown-body" id="report-body"></div>
+    </div>
+
+  </main>
+</div>
+
+<!-- Toast Container -->
+<div id="toast-container"></div>
+
+<script src="/static/js/app.js"></script>
+</body>
+</html>
